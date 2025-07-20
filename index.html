@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>視覚信号練習アプリ</title>
+  <title>発光信号練習アプリ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -15,23 +15,19 @@
       margin-right: auto;
       position: relative;
     }
-
     h1 {
       font-size: 1.5em;
       text-align: center;
       margin-bottom: 1em;
     }
-
     .panel {
       margin: 1em 0;
     }
-
     label {
       display: block;
       margin-bottom: 0.3em;
       font-weight: bold;
     }
-
     input[type="text"],
     input[type="number"],
     select {
@@ -41,7 +37,6 @@
       box-sizing: border-box;
       margin-bottom: 0.5em;
     }
-
     button {
       padding: 0.5em 1em;
       font-size: 1em;
@@ -53,7 +48,6 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
     #light {
       width: 100px;
       height: 100px;
@@ -63,22 +57,23 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
       transition: background-color 0.2s, box-shadow 0.2s;
     }
-
     ul {
       list-style: none;
       padding-left: 1em;
     }
-
+    #history {
+      list-style-type: none !important;
+      padding-left: 0 !important;
+      margin-left: 0 !important;
+    }
     #multiAnswerPanel input {
       width: 100%;
       margin-bottom: 0.5em;
     }
-
     strong {
       display: inline-block;
       margin-bottom: 0.3em;
     }
-
     #settingsPanel {
       display: none;
       position: fixed;
@@ -94,7 +89,6 @@
       overflow-y: auto;
       max-height: 80vh;
     }
-
     #toggleSettingsBtn {
       position: fixed;
       top: 10px;
@@ -107,17 +101,14 @@
       border: none;
       cursor: pointer;
     }
-
     @media (max-width: 480px) {
       h1 {
         font-size: 1.2em;
       }
-
       button {
         width: 100%;
         margin-bottom: 0.5em;
       }
-
       #settingsPanel {
         width: 90vw;
         right: 5vw;
@@ -127,7 +118,7 @@
   </style>
 </head>
 <body>
-  <h1>視覚信号練習アプリ</h1>
+  <h1>発光信号練習アプリ</h1>
 
   <div id="light"></div>
 
@@ -149,11 +140,11 @@
 
   <div id="settingsPanel" class="panel">
     <label>出題数</label>
-    <input type="number" id="questionCount" value="3" min="1" max="10" />
+    <input type="number" id="questionCount" value="1" min="1" max="20" />
     <label>1問あたりの文字数</label>
     <input type="number" id="lengthPerQuestion" value="1" min="1" max="10" />
     <label>問題間隔（秒）</label>
-    <input type="number" id="intervalSec" value="5" min="0.1" step="0.1" />
+    <input type="number" id="intervalSec" value="10" min="1" step="1" />
     <label>出題文字種別</label>
     <select id="charTypeSelect">
       <option value="all">すべて（数字＋ひらがな）</option>
@@ -176,7 +167,7 @@
     <input type="number" id="dashTime" value="0.6" step="0.01" min="0.01" />
     <label>間隔 (秒)</label>
     <input type="number" id="gapTime" value="0.2" step="0.01" min="0.01" />
-    <label>信号スピード倍率（例: 1 = 通常, 0.5 = 速く）</label>
+    <label>信号スピード倍率（例: 1 = 通常, 2 = 速く）</label>
     <input type="number" id="speedMultiplier" value="1" step="0.1" min="0.1" />
   </div>
 
@@ -315,25 +306,37 @@
 
     function checkMultiAnswers() {
       const history = document.getElementById('history');
-      for (let i = 0; i < currentQuestions.length; i++) {
+      const count = currentQuestions.length;
+      let newEntries = [];
+
+      for (let i = 0; i < count; i++) {
         const expected = currentQuestions[i];
         const userInput = document.getElementById(`answerInput${i}`).value.trim();
 
-        // モールス信号を取得
         let morse = '';
         for (let char of expected) {
           morse += morseCode[char] ? morseCode[char] + ' ' : '? ';
         }
 
-        const entry = document.createElement('li');
-        entry.textContent = `Q${i + 1}: ${expected}（${morse.trim()}） | A: ${userInput} | ${userInput === expected ? '⭕' : '❌'}`;
-        history.appendChild(entry);
+        const li = document.createElement('li');
+        if (count > 1) {
+          li.textContent = `Q${i + 1}: ${expected}（${morse.trim()}） | A: ${userInput} | ${userInput === expected ? '⭕' : '❌'}`;
+        } else {
+          li.textContent = `${expected}（${morse.trim()}） | A: ${userInput} | ${userInput === expected ? '⭕' : '❌'}`;
+        }
+        newEntries.push(li);
 
         if (userInput === expected) correct++;
       }
 
+      // 新しい履歴は上に来るので、配列の先頭から順に insertBefore で先頭に挿入
+      for (let i = newEntries.length - 1; i >= 0; i--) {
+        history.insertBefore(newEntries[i], history.firstChild);
+      }
+
+      // 履歴20件以上は古いもの（下の方）を削除
       while (history.children.length > 20) {
-        history.removeChild(history.firstChild);
+        history.removeChild(history.lastChild);
       }
 
       document.getElementById('correctCount').textContent = correct;
