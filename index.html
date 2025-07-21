@@ -227,16 +227,29 @@
       currentAnswer = text;
 
       let sequence = [];
-      for (let char of text) {
+      let i = 0;
+      while (i < text.length) {
+        let char = text.slice(i, i + 2); // 濁点などの2文字対応を確認
         if (morseCode[char]) {
-          for (let symbol of morseCode[char]) {
-            if (symbol === '.') sequence.push([color, dotTime * speed]);
-            else if (symbol === '-') sequence.push([color, dashTime * speed]);
-            sequence.push(['#ccc', gap * speed]);
-          }
-          sequence.push(['#ccc', gap * 2 * speed]);
+          // 濁点や半濁点のような複数文字キー
+          processChar(char);
+          i += 2;
+        } else {
+          char = text[i];
+          if (morseCode[char]) processChar(char);
+          i += 1;
         }
       }
+
+      function processChar(char) {
+        for (let symbol of morseCode[char]) {
+          if (symbol === '.') sequence.push([color, dotTime / speed]);
+          else if (symbol === '-') sequence.push([color, dashTime / speed]);
+          sequence.push(['#ccc', gap / speed]);
+        }
+        sequence.push(['#ccc', gap * 2 / speed]);
+      }
+
 
       let t = 0;
       for (let [c, duration] of sequence) {
@@ -255,7 +268,7 @@
       if (charType === 'numbers') {
         chars = charsAll.filter(c => /^[0-9]$/.test(c));
       } else if (charType === 'hiragana') {
-        chars = charsAll.filter(c => /^[\u3040-\u309F]$/.test(c));
+        chars = charsAll.filter(c => c.length === 1 || c === "濁点" || c === "半濁点");
       } else {
         chars = charsAll;
       }
@@ -298,8 +311,17 @@
     function showAnswer() {
       const text = currentAnswer;
       let morse = '';
-      for (let char of text) {
-        morse += morseCode[char] ? morseCode[char] + ' ' : '? ';
+      let j = 0;
+      while (j < expected.length) {
+        let twoChar = expected.slice(j, j + 2);
+        if (morseCode[twoChar]) {
+          morse += morseCode[twoChar] + ' ';
+          j += 2;
+        } else {
+          let oneChar = expected[j];
+          morse += morseCode[oneChar] ? morseCode[oneChar] + ' ' : '? ';
+          j += 1;
+        }
       }
       document.getElementById('answer').textContent = `${text}（${morse.trim()}）`;
     }
@@ -313,10 +335,19 @@
         const expected = currentQuestions[i];
         const userInput = document.getElementById(`answerInput${i}`).value.trim();
 
-        let morse = '';
-        for (let char of expected) {
-          morse += morseCode[char] ? morseCode[char] + ' ' : '? ';
+      let morse = '';
+      let j = 0;
+      while (j < expected.length) {
+        let twoChar = expected.slice(j, j + 2);
+        if (morseCode[twoChar]) {
+          morse += morseCode[twoChar] + ' ';
+          j += 2;
+        } else {
+          let oneChar = expected[j];
+          morse += morseCode[oneChar] ? morseCode[oneChar] + ' ' : '? ';
+          j += 1;
         }
+      }
 
         const li = document.createElement('li');
         if (count > 1) {
