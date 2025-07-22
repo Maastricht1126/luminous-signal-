@@ -229,9 +229,8 @@
       let sequence = [];
       let i = 0;
       while (i < text.length) {
-        let char = text.slice(i, i + 2); // 濁点などの2文字対応を確認
+        let char = text.slice(i, i + 2);
         if (morseCode[char]) {
-          // 濁点や半濁点のような複数文字キー
           processChar(char);
           i += 2;
         } else {
@@ -249,7 +248,6 @@
         }
         sequence.push(['#ccc', gap * 2 / speed]);
       }
-
 
       let t = 0;
       for (let [c, duration] of sequence) {
@@ -312,13 +310,13 @@
       const text = currentAnswer;
       let morse = '';
       let j = 0;
-      while (j < expected.length) {
-        let twoChar = expected.slice(j, j + 2);
+      while (j < text.length) {
+        let twoChar = text.slice(j, j + 2);
         if (morseCode[twoChar]) {
           morse += morseCode[twoChar] + ' ';
           j += 2;
         } else {
-          let oneChar = expected[j];
+          let oneChar = text[j];
           morse += morseCode[oneChar] ? morseCode[oneChar] + ' ' : '? ';
           j += 1;
         }
@@ -335,19 +333,19 @@
         const expected = currentQuestions[i];
         const userInput = document.getElementById(`answerInput${i}`).value.trim();
 
-      let morse = '';
-      let j = 0;
-      while (j < expected.length) {
-        let twoChar = expected.slice(j, j + 2);
-        if (morseCode[twoChar]) {
-          morse += morseCode[twoChar] + ' ';
-          j += 2;
-        } else {
-          let oneChar = expected[j];
-          morse += morseCode[oneChar] ? morseCode[oneChar] + ' ' : '? ';
-          j += 1;
+        let morse = '';
+        let j = 0;
+        while (j < expected.length) {
+          let twoChar = expected.slice(j, j + 2);
+          if (morseCode[twoChar]) {
+            morse += morseCode[twoChar] + ' ';
+            j += 2;
+          } else {
+            let oneChar = expected[j];
+            morse += morseCode[oneChar] ? morseCode[oneChar] + ' ' : '? ';
+            j += 1;
+          }
         }
-      }
 
         const li = document.createElement('li');
         if (count > 1) {
@@ -360,12 +358,10 @@
         if (userInput === expected) correct++;
       }
 
-      // 新しい履歴は上に来るので、配列の先頭から順に insertBefore で先頭に挿入
       for (let i = newEntries.length - 1; i >= 0; i--) {
         history.insertBefore(newEntries[i], history.firstChild);
       }
 
-      // 履歴20件以上は古いもの（下の方）を削除
       while (history.children.length > 20) {
         history.removeChild(history.lastChild);
       }
@@ -376,3 +372,4 @@
   </script>
 </body>
 </html>
+
